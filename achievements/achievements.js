@@ -45,7 +45,7 @@ const achievements = {
       achievement.achieved = Date.now()
       localStorage.setItem(this.achievementsKey, JSON.stringify(achievements))
     }
-    msg(`Achievement unlocked: ${achievement.alias} - ${achievement.details}`)
+    msg(`Achievement unlocked: ${achievement.alias} - ${achievement.afterDetails}`)
   },
 
   endTurn() {
