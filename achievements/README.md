@@ -2,7 +2,7 @@
 
 1. Copy ```achievements.js``` to the QuestJS ```/lib``` directory
 2. Add ```settings.customLibraries.push({folder:'lib',files:['achievements']})``` to ```settings.js```
-4. Add ```achievements.persistAchievements()``` to the ```settings.setup``` function
+3. Add ```achievements.persistAchievements()``` to the ```settings.setup``` function
 
 ### Functions
 _createAchievement_
