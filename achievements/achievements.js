@@ -31,8 +31,8 @@ const achievements = {
     })
   },
 
-  listAchievements(achivements) {
-    achivements.forEach(ach => {
+  listAchievements(achievements) {
+    achievements.forEach(ach => {
       msg(`${ach.achieved ? "&#9745;" : "&#9744;"} ${ach.alias} - ${ach.achieved ? ach.afterDetails : ach.details}${ach.achieved ? " - " + new Date(ach.achieved).toDateString() : ''}`)
     })
   },
