@@ -11,155 +11,303 @@ io.dialogDismissable = false
 
 io.dialog = function(data) {
   if (test.testing || settings.walkthroughMenuResponses.length > 0) {
-    //fn(cols[1], typeof row === 'string' ? rows[1] : rows[1].name)
     return
   }
+
   world.suppressEndTurn = true
 
   io.dialogWidgets = data.widgets
   io.dialogOkayScript = data.okayScript
   io.dialogCancelScript = data.cancelScript
   const diag = document.getElementById("dialog")
-  
-  let html = ''
-  html += '<h3 class="dialog-heading">' + data.title + '</h3>'
-  if (data.desc) html += '<p>' + data.desc + '</p>'
-  if (data.html) html += data.html
-  
-  for (const el of data.widgets) html += io.setWidget(el)
-  if (!data.dismissable || !data.suppressCancel || !data.suppressOkay) html += '<hr><p>'
-  if (!data.suppressCancel) html += '<input type="button" value="Cancel" style="color:grey;float: right;" onclick="io.dialogCancel()"/>'
-  if (!data.dismissable || !data.suppressOkay) html += '<input type="button" value="Okay" style="color:grey;float: right;" onclick="io.dialogOkay()"/></p>'
-  diag.innerHTML = html
-  diag.style.width = '400px'
-  diag.style.height = 'auto'
-  diag.style.top = '80px'
-  diag.style.position = 'fixed'
-  diag.title = data.title
-  io.disable(3)
+  diag.innerHTML = "";
+
+  const heading = document.createElement('h3');
+  heading.className = 'dialog-heading';
+  heading.textContent = data.title;
+  diag.appendChild(heading);
+
+  if (data.desc) {
+    const p = document.createElement('p');
+    p.textContent = data.desc;
+    diag.appendChild(p);
+  }
+
+  if (data.html) {
+    diag.insertAdjacentHTML('beforeend', data.html);
+  }
+
+  for (const el of data.widgets) {
+    diag.appendChild(io.setWidget(el));
+  }
+
+  if (!data.dismissable || !data.suppressCancel || !data.suppressOkay) {
+    const hr = document.createElement('hr');
+    diag.appendChild(hr);
+
+    const p = document.createElement('p');
+    if (!data.suppressCancel) {
+      const cancel = document.createElement('input');
+      cancel.type = 'button';
+      cancel.value = 'Cancel';
+      cancel.style.color = 'grey';
+      cancel.style.float = 'right';
+      cancel.addEventListener('click', io.dialogCancel);
+      p.appendChild(cancel);
+    }
+
+    if (!data.dismissable || !data.suppressOkay) {
+      const okay = document.createElement('input');
+      okay.type = 'button';
+      okay.value = 'Okay';
+      okay.style.color = 'grey';
+      okay.style.float = 'right';
+      okay.addEventListener('click', io.dialogOkay);
+      p.appendChild(okay);
+    }
+    diag.appendChild(p);
+  }
+
+  diag.style.width = '400px';
+  diag.style.height = 'auto';
+  diag.style.top = '80px';
+  diag.style.position = 'fixed';
+  diag.style.display = 'block';
+
+  document.body.appendChild(diag);
+
+  io.disable(3);
+
   if (data.dismissable) {
-    let dismissScript = document.createElement('script');
-    dismissScript.innerHTML = 'setTimeout(function() { io.dialogDismissable = true; }, 0);';
+    const dismissScript = document.createElement('script');
+    dismissScript.text = 'setTimeout(function() { io.dialogDismissable = true; }, 0);';
     diag.appendChild(dismissScript);
   }
-  diag.style.display = 'block';
-  
-  //log('here')
 }
 
 io.setWidget = function(options) {
-  //log(options)
-  let type = options.type
+  let type = options.type;
   if (type === 'auto') {
-    type = Object.keys(options.data).length > settings.widgetRadioMax ? 'dropdown' : 'radio'
+    type = Object.keys(options.data).length > settings.widgetRadioMax ? 'dropdown' : 'radio';
   }
-    
-  let html = '<div id="dialog-div-' + options.name + '" class="widget"><h4>' + options.title + '</h4>'
+
+  const widgetDiv = document.createElement('div');
+  widgetDiv.id = `dialog-div-${options.name}`;
+  widgetDiv.className = 'widget';
+
+  const h4 = document.createElement('h4');
+  h4.textContent = options.title;
+  widgetDiv.appendChild(h4);
+
   if (type === 'radio') {
-    let value = (typeof options.value === 'string' && Object.keys(options.data).includes(options.value)) ? options.value : Object.keys(options.data)[0]
-    html += '<div id="' + options.name + '" style="display:none" ></div>'  // usefu later when deciding what type this is
+    let value = (typeof options.value === 'string' && Object.keys(options.data).includes(options.value)) ? options.value : Object.keys(options.data)[0];
+
+    const div = document.createElement('div');
+    div.id = options.name;
+    div.style.display = 'none';
+    widgetDiv.appendChild(div);
+
     for (const key in options.data) {
-      html += '<div><input type="radio" name="' + options.name + '" id="' + key +'" value="' + key +'" '
-      if (key === value) html += 'checked '
-      if (options.hasOwnProperty("oninput")){
-        const onInputStr = io.convertFuncToString(options.oninput.toString(), `{${options.name}: this.value}`)
-        html += 'oninput="' + onInputStr + '"';
+      const input = document.createElement('input');
+      input.type = 'radio';
+      input.name = options.name;
+      input.id = key;
+      input.value = key;
+
+      if (key === value) {
+        input.checked = true;
       }
-      html += '/><label for="' + key +'">' + options.data[key] + '</label></div>'
+      if (options.hasOwnProperty('oninput')) {
+        input.addEventListener('input', (event) => {
+          io.onWidgetInput(options.name, event.target.value)
+        });
+      }
+      
+      widgetDiv.appendChild(input);
+
+      const label = document.createElement('label');
+      label.htmlFor = key;
+      label.textContent = options.data[key];
+      widgetDiv.appendChild(label);
+
+      const br = document.createElement('br');
+      widgetDiv.appendChild(br);
     }
-  }  
-  
-  if (type === 'dropdown') {
-    let value = (typeof options.value === 'string' && Object.keys(options.data).includes(options.value)) ? options.value : Object.keys(options.data)[0]
-    html += '<select name="' + options.name + '" id="' + options.name + '"'
-    if (options.hasOwnProperty("oninput")){
-      const onInputStr = io.convertFuncToString(options.oninput.toString(), `{${options.name}: this.value}`)
-      html += 'onchange="' + onInputStr + '"';
-    }
-    html +='><br/>'
-    for (const key in options.data) {
-      html += '<option value="' + key + '"'
-      if (key === value) html += ' selected="selected" '
-      html += '/>' + options.data[key] + '</option>'
-    }
-    html += '</select>'
   }
-  
-  if (type === 'dropdownPlus') {
+
+  else if (type === 'dropdown') {
+    let value = (typeof options.value === 'string' && Object.keys(options.data).includes(options.value)) ? options.value : Object.keys(options.data)[0]
+
+    const select = document.createElement('select');
+    select.name = options.name;
+    select.id = options.name;
+    if (options.hasOwnProperty('oninput')) {
+      select.addEventListener('change', (event) => {
+        io.onWidgetInput(options.name, event.target.value)
+      });
+    }
+    const br = document.createElement('br')
+    select.appendChild(br)
+    for (const key in options.data) {
+      const option = document.createElement('option');
+      option.value = key
+      if (key === value){
+        option.selected = "selected"
+      }
+      option.textContent = options.data[key]
+      select.appendChild(option)
+    }  
+    widgetDiv.appendChild(select);
+  }
+
+  else if (type === 'dropdownPlus') {
     let index = options.data.findIndex(el => el.name === options.value);
     if (index === -1) index = 0
-    html += '<select name="' + options.name + '" id="' + options.name + '" onchange="io.dropdownChange(\'' + options.name + '\')'
-    if (options.hasOwnProperty("oninput")){
-      const onInputStr = io.convertFuncToString(options.oninput.toString(), `{${options.name}: this.value}`)
-      html += ';' + onInputStr;
+
+    const select = document.createElement('select');
+    select.name = options.name;
+    select.id = options.name;
+    if (options.hasOwnProperty('oninput')) {
+      select.addEventListener('change', (event) => {
+        io.onWidgetInput(options.name, event.target.value)
+      });
     }
-    html += '"><br/>'
+    const br = document.createElement('br')
+    select.appendChild(br)
+
     for (let i = 0; i < options.data.length; i++) {
-      let el = options.data[i]
-      html += '<option value="' + el.name + '"'
-      if (i === index) html += ' selected="selected" '
-      if (options.hasOwnProperty("oninput")){
-        const onInputStr = io.convertFuncToString(options.oninput.toString(), `{${options.name}: this.value}`)
-        html += 'oninput="' + onInputStr + '"';
+      const  el = options.data[i]
+      const option = document.createElement('option');
+      option.value = el.name
+      if (i === index){
+        option.selected = "selected"
+
       }
-      html += '/>' + el.title + '</option>'
+      option.textContent = el.title
+      select.appendChild(option)
     }
-    html += '</select>'
-    //log(index)
-    //log(options.data)
-    html += '<p class="dialog-text" id="' + options.name + '-text">' + options.data[index].text + '</p>'
+
+    widgetDiv.appendChild(select);
+
+    const p = document.createElement('p')
+    p.className = "dialog-text"
+    p.id = `${options.name}-text`
+    p.textContent = options.data[index].text
+
+    widgetDiv.appendChild(p);
   }
-  
-  if (type === 'checkbox') {
-    html += '<input type="checkbox" name="' + options.name + '" id="' + options.name + '" '
-    if (options.value) html += 'checked '
-    if (options.hasOwnProperty("oninput")){
-      const onInputStr = io.convertFuncToString(options.oninput.toString(), `{${options.name}: this.checked}`)
-      html += 'oninput="' + onInputStr + '"';
+
+  else if (type === 'checkbox') {
+    const input = document.createElement('input');
+    input.type = "checkbox"
+    input.name = options.name;
+    input.id = options.name;
+    if (options.value) input.checked = true
+    if (options.hasOwnProperty('oninput')) {
+      input.addEventListener('input', (event) => {
+        io.onWidgetInput(options.name, event.target.checked)
+      });
     }
-    html += '/><label for="' + options.name +'">' + options.data + '</label></div>'
+ 
+    widgetDiv.appendChild(input);
+
+    const label = document.createElement('label')
+    label.htmlFor = options.name;
+    label.textContent = options.data;
+    widgetDiv.appendChild(label);
   }
-  
-  if (type === 'color' || type === 'colour') {
+
+  else if (type === 'color' || type === 'colour') {
     const colorRegex = /^#(?:[0-9a-fA-F]{3}){1,2}$/
     let value = (typeof options.value === 'string' && options.value.match(colorRegex)) ? options.value : '#000000'
-    html += '<input type="color" name="' + options.name + '" id="' + options.name + '" '
-    html += 'value="' + value + '" '
-    if (options.hasOwnProperty("oninput")){
-      const onInputStr = io.convertFuncToString(options.oninput.toString(), `{${options.name}: this.value}`)
-      html += 'oninput="' + onInputStr + '"';
+    const input = document.createElement('input');
+    input.type = "color"
+    input.name = options.name;
+    input.id = options.name;
+    input.value = value;
+    if (options.hasOwnProperty('oninput')) {
+      input.addEventListener('input', (event) => {
+        io.onWidgetInput(options.name, event.target.value)
+      });
     }
-    html += '/></div>'
+ 
+    widgetDiv.appendChild(input);
+
   }
-  
-  if (type === 'range' || type === 'number') {
-    let value = typeof options.value === 'number' ? options.value : 0
-    html += '<input type="' + type + '" name="' + options.name + '" id="' + options.name + '" '
-    html += 'value="' + value + '" '
-    if (options.opts) html += options.opts + ' '
-    if (options.hasOwnProperty("oninput")){
-      const onInputStr = io.convertFuncToString(options.oninput.toString(), `{${options.name}: parseInt(this.value)}`)
-      html += 'oninput="' + onInputStr + '"';
+
+  else if (type === 'range' || type === 'number') {
+    const value = typeof options.value === 'number' ? options.value : 0
+    const input = document.createElement('input');
+    input.type = type
+    input.name = options.name;
+    input.id = options.name;
+    input.value = value;
+    if (options.min) input.min = options.min
+    if (options.max) input.max = options.max
+    if (options.step) input.step = options.step
+    if (options.hasOwnProperty('oninput')) {
+      input.addEventListener('input', (event) => {
+        io.onWidgetInput(options.name, event.target.value)
+      });
     }
-    html += '/></div>'
+ 
+    widgetDiv.appendChild(input);
+
   }
-  
-  if (type === 'text' || type === 'password') {
-    let value = typeof options.value === 'string' ? options.value : ''
-    html += '<input type="' + type + '" name="' + options.name + '" id="' + options.name + '" '
-    html += 'value="' + value + '" '
-    if (options.opts) html += options.opts + ' '
-    if (options.hasOwnProperty("oninput")){
-      const onInputStr = io.convertFuncToString(options.oninput.toString(), `{${options.name}: this.value}`)
-      html += 'onblur="' + onInputStr + '"';
+
+  else if (type === 'text' || type === 'password') {
+    const value = typeof options.value === 'string' ? options.value : ''
+    const input = document.createElement('input');
+    input.type = type
+    input.name = options.name;
+    input.id = options.name;
+    input.value = value;
+    if (options.min) input.minlength = options.min
+    if (options.max) input.maxlength = options.max
+    if (options.pattern) input.pattern = options.pattern
+    if (options.placeholder) input.placeholder = options.placeholder
+    if (options.hasOwnProperty('oninput')) {
+      input.addEventListener('blur', (event) => {
+        io.onWidgetInput(options.name, event.target.value)
+      });
     }
-    html += '/></div>'
+
+    widgetDiv.appendChild(input);
+
   }
-  
-  if (options.comment) html += '<p class="dialog-comment">' + options.comment + '</p>'
-  html += '</div>'
-  
-  return html
+
+  else if (type === 'file') {
+    const value = typeof options.value === 'string' ? options.value : ''
+    const input = document.createElement('input');
+    input.type = type
+    input.name = options.name;
+    input.id = options.name;
+    input.value = value;
+    if (options.accept) input.accept = options.accept
+    if (options.hasOwnProperty('oninput')) {
+      input.addEventListener('input', (event) => {
+        io.onWidgetInput(options.name, event.target.value)
+      });
+    }
+ 
+    widgetDiv.appendChild(input);
+
+  }
+
+  if (options.comment) {
+    const p = document.createElement('p');
+    p.className = 'dialog-comment';
+    p.textContent = options.comment;
+    widgetDiv.appendChild(p);
+  }
+
+  return widgetDiv;
+};
+
+io.onWidgetInput = function(widgetName, value){
+  const result = {}
+  result[widgetName] = value
+  io.dialogWidgets.find(widget => widget.name === widgetName).oninput(result)
 }
 
 io.convertFuncToString = function(funcStr, paramReplStr){
@@ -168,9 +316,53 @@ io.convertFuncToString = function(funcStr, paramReplStr){
   funcStr = funcStr.replace(/"/g, "'");
   if (param.length > 0){
     const regex = new RegExp(`\\b${param}\\b`, 'g')
-    funcStr = funcStr.replace(regex, paramReplStr)
+    funcStr = funcStr.replace(regex, paramReplStr);
   }
   return funcStr
+}
+
+io.htmlValue = function(options) {
+  //log(options.name)
+  // use type to cover the auto type
+  const type = document.querySelector('#' + options.name).type
+
+  let value
+  
+  if (options.type === 'dropdownPlus') {
+    value = document.querySelector('#' + options.name).value
+    options.checked = 0
+    for (const el of options.data) {
+      if (el.name === value) break
+      options.checked++
+    }
+  }
+  else if (type === 'select-one') {
+    value = document.querySelector('#' + options.name).value
+    options.checked = 0
+    for (const key in options.data) {
+      if (key === value) break
+      options.checked++
+    }
+  }
+  else if (type === 'checkbox') {
+    value = document.querySelector('#' + options.name).checked
+    options.checked = value
+  }
+  else if (type === 'text' || type === 'number' || type === 'password' || type === 'range' || type === 'color' || type === 'file') {
+    value = document.querySelector('#' + options.name).value
+    if (type === 'number') value = parseInt(value)
+    options.checked = value
+  }
+  else {  // radio button has no type
+    value = document.querySelector('input[name="' + options.name + '"]:checked').value
+    options.checked = 0
+    for (const key in options.data) {
+      if (key === value) break
+      options.checked++
+    }
+  }
+
+  return value
 }
 
 io.dialogOkay = function() {
