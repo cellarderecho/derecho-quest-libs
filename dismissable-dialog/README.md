@@ -52,18 +52,18 @@ const widgets = {
   title:'Test All Dialog Widgets',
   widgets:[
     { type: 'radio', title: 'Radio', name: 'radio', data: {radio1:'Option 1', radio2: 'Option 2'}, oninput: onInputFunc, value: 'radio2' },
-      { type: 'dropdown', title: 'Dropdown', name: 'dropdown', data: {dropdown1:'Option 1', dropdown2: 'Option 2'}, oninput: onInputFunc, value: 'dropdown2' },
-      { type:'dropdownPlus', title:'DropdownPlus', name:'dropdownPlus', lines:4, data:[
-        {name:'dropdownPlus1', title:'Option 1', text:'Text for option 1'},
-        {name:'dropdownPlus2', title:'Option 2', text:'Text for option 2'},
-      ], oninput: onInputFunc, value: 'dropdownPlus2'},
-      { type:'checkbox', title:'Checkbox', name:'checkbox', data:'Checked?', oninput: onInputFunc, value: true},
-      { type: 'color', title: 'Color', name: 'color', oninput: onInputFunc, value: '#77767b' },
-      { type:'range', title:'Range', name:'range', data:'Range?', min: 0, max: 10, step: 2, oninput: onInputFunc, value: 6},
-      { type:'number', title:'Number', name:'number', data:'Number?', min: 0, max: 10, oninput: onInputFunc, value: 3},
-      { type:'text', title:'Text', name:'text', min: 3, max: 10, oninput: onInputFunc, value: 'text'},
-      { type:'password', title:'Password', name:'password', min: 3, max: 10, oninput: onInputFunc, placeholder: 'password'},
-      { type:'file', title: 'File', name: 'file', accept: ".txt,.json", oninput: onInputFunc}
+    { type: 'dropdown', title: 'Dropdown', name: 'dropdown', data: {dropdown1:'Option 1', dropdown2: 'Option 2'}, oninput: onInputFunc, value: 'dropdown2' },
+    { type:'dropdownPlus', title:'DropdownPlus', name:'dropdownPlus', lines:4, data:[
+      {name:'dropdownPlus1', title:'Option 1', text:'Text for option 1'},
+      {name:'dropdownPlus2', title:'Option 2', text:'Text for option 2'},
+    ], oninput: onInputFunc, value: 'dropdownPlus2'},
+    { type:'checkbox', title:'Checkbox', name:'checkbox', data:'Checked?', oninput: onInputFunc, value: true},
+    { type: 'color', title: 'Color', name: 'color', oninput: onInputFunc, value: '#77767b' },
+    { type:'range', title:'Range', name:'range', data:'Range?', min: 0, max: 10, step: 2, oninput: onInputFunc, value: 6},
+    { type:'number', title:'Number', name:'number', data:'Number?', min: 0, max: 10, oninput: onInputFunc, value: 3},
+    { type:'text', title:'Text', name:'text', min: 3, max: 10, oninput: onInputFunc, value: 'text'},
+    { type:'password', title:'Password', name:'password', min: 3, max: 10, oninput: onInputFunc, placeholder: 'password'},
+    { type:'file', title: 'File', name: 'file', accept: ".txt,.json", oninput: onInputFunc}
   ],
   okayScript:function(results) {
     console.log(results)

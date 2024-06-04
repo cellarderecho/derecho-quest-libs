@@ -310,17 +310,6 @@ io.onWidgetInput = function(widgetName, value){
   io.dialogWidgets.find(widget => widget.name === widgetName).oninput(result)
 }
 
-io.convertFuncToString = function(funcStr, paramReplStr){
-  const param = funcStr.substring(funcStr.indexOf('(') + 1, funcStr.indexOf(')'))
-  funcStr = funcStr.substring(funcStr.indexOf('{'), funcStr.lastIndexOf('}') + 1)
-  funcStr = funcStr.replace(/"/g, "'");
-  if (param.length > 0){
-    const regex = new RegExp(`\\b${param}\\b`, 'g')
-    funcStr = funcStr.replace(regex, paramReplStr);
-  }
-  return funcStr
-}
-
 io.htmlValue = function(options) {
   //log(options.name)
   // use type to cover the auto type
