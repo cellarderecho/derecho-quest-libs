@@ -241,10 +241,10 @@ io.setWidget = function(options) {
     input.type = type
     input.name = options.name;
     input.id = options.name;
-    input.value = value;
     if (options.min) input.min = options.min
     if (options.max) input.max = options.max
     if (options.step) input.step = options.step
+    input.value = value;
     if (options.hasOwnProperty('oninput')) {
       input.addEventListener('input', (event) => {
         io.onWidgetInput(options.name, event.target.value)
